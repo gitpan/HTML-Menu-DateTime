@@ -2,7 +2,7 @@ package HTML::Menu::DateTime;
 use strict;
 use Carp;
 
-our $VERSION = '0.91';
+our $VERSION = '0.91_01';
 
 
 sub new {
@@ -18,16 +18,17 @@ sub new {
   $YEAR  += 1900;
   
   # setup defaults, then override with input (if any)
-  my $self = bless ({ second     => $SEC,
-                      minute     => $MIN,
-                      hour       => $HOUR,
-                      day        => $DAY,
-                      month      => $MONTH,
-                      year       => $YEAR,
-                      date       => $date,
-                      less_years => 5,
-                      plus_years => 5,
-                      @_,
+  my $self = bless ({second       => $SEC,
+                     minute       => $MIN,
+                     hour         => $HOUR,
+                     day          => $DAY,
+                     month        => $MONTH,
+                     year         => $YEAR,
+                     date         => $date,
+                     less_years   => 5,
+                     plus_years   => 5,
+                     month_format => 'long',
+                     @_,
                     }, $pkg);
   
   
@@ -230,9 +231,22 @@ sub month_menu {
   my $self   = shift;
   my $select = _parse_input ($self->{month}, @_);
   
+  my @decimal = ('01'..'09', 10..12);
+  
   my %mon;
-  @mon{'01'..'09', 10..12} = qw/January February March April May June July 
-                                August September October November December/;
+  if ($self->{month_format} eq 'decimal') {
+    @mon{@decimal} = @decimal;
+  }
+  elsif ($self->{month_format} eq 'short') {
+    @mon{@decimal} = qw/Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec/;
+  }
+  elsif ($self->{month_format} eq 'ornate') {
+    @mon{@decimal} = qw/1st 2nd 3rd 4th 5th 6th 7th 8th 9th 10th 11th 12th/;
+  }
+  else {
+    @mon{@decimal} = qw/January February March April May June July August 
+                        September October November December/;
+  }
   
   my @loop;
   if (defined $self->{empty_first}) {
@@ -342,6 +356,13 @@ sub plus_years {
   $self->{plus_years} = defined $_[0] ? shift : undef;
 }
 
+
+sub month_format {
+  my $self = shift;
+
+  $self->{month_format} = defined $_[0] ? shift : 'long';
+}
+
 ###
 
 sub _parse_input {
@@ -371,29 +392,29 @@ sub _parse_input {
 
 1;
 
-__END__
 
 =head1 NAME
 
-HTML::Menu::DateTime
-
-Easily create HTML select menus for use with the HTML::Template or 
-Template::Toolkit templating systems.
+HTML::Menu::DateTime - Easily create HTML select menus for use with the 
+HTML::Template or Template::Toolkit templating systems.
 
 =head1 SYNOPSIS
 
   use HTML::Menu::DateTime;
   
   my $menu = HTML::Menu::DateTime->new (
-    date        => '2004-02-26',
-    no_select   => 1,
-    empty_first => '');
+    date         => '2004-02-26',
+    no_select    => 1,
+    empty_first  => '',
+    month_format => 'short');
   
   $menu->start_year (2000);
   $menu->end_year (2010);
   
   $menu->less_years (1);
   $menu->plus_years (5);
+  
+  $menu->month_format ('short');
   
   $menu->second_menu;
   $menu->minute_menu;
@@ -459,9 +480,21 @@ Can be in any of the formats 'YYYY-MM-DD hh:mm:ss', 'YYYYMMDDhhmmss',
 The date passed to C<new()> is used to decide which item should be selected 
 in all of the menu methods.
 
-=item start_year, end_year, less_years, plus_years
+=item start_year
 
-The equivalent of calling the method of the same name.
+Accepts the same values as the start_year method.
+
+=item end_year
+
+Accepts the same values as the end_year method.
+
+=item less_years
+
+Accepts the same values as the less_years method.
+
+=item plus_years
+
+Accepts the same values as the plus_years method.
 
 =item no_select
 
@@ -474,6 +507,10 @@ If defined, will create an extra list item at the start of each menu. The
 form value will be the empty string (''), the value passed to 
 C<empty_first('value')> will be the visible label for the first item (the 
 empty string is allowed).
+
+=item month_format
+
+Accepts the same values as the month_format method.
 
 =back
 
@@ -506,6 +543,17 @@ Sets the year that the dropdown menu will end on, relative to the selected
 year.
 
 May not be used if multiple values for selection are passed to C<year_menu()>.
+
+=head2 month_format()
+
+Each item in the month menu has a label. By default this is the long English 
+month name, such as 'January', 'February', etc. The format of the label can 
+be changed as shown in the list below.
+
+  $date->month_format ('long');      # January, February, ...
+  $date->month_format ('short');     # Jan, Feb, ...
+  $date->month_format ('decimal');   # 01, 02, ...
+  $date->month_format ('ornate');    # 1st, 2nd, ...
 
 =head2 second_menu()
 
