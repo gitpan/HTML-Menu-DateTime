@@ -1,0 +1,55 @@
+Changes in 0.90
+
+	Changed Name to HTML::Menu::DateTime.
+	Changed all methods and flags from dayMenu style to day_menu (Suggested by 
+	Mark Stosberg).
+	Renamed html-template example files from *.html to *.tmpl.
+	Added example files for template-toolkit.
+	Added POD examples for template-toolkit.
+	Added To Do list and support to POD.
+
+Changes in 0.80
+
+	Added template files to example folder.
+	Cleaned up POD.
+
+Changes in 0.70
+
+	Removed all package-wide datetime variables, so that it should work with 
+	mod_perl (untested). The variables are now initialised upon object creation.
+
+Changes in 0.60
+
+	In secondMenu minuteMenu hourMenu dayMenu and monthMenu methods,
+	all menu values are prefixed with '0' if less than 10.
+
+Changes in 0.50
+
+	Added secondMenu minuteMenu hourMenu methods.
+	Removed all non-oo capabilities.
+	Changed namespace.
+	Rewrote most tests.
+
+Changes in 0.40
+
+	Clean up some syntax.
+
+Changes in 0.30
+
+	Added noSelect option + test.
+	Added emptyFirst option + test.
+
+Changes in 0.20
+
+	Completely reworked tests and added more.
+	Fixed some of the logic in yearMenu.
+
+Changes in 0.10
+
+	Added 'date' to new() - with tests.
+	Made startYear / endYear accept zero to start / end range on selected year.
+	More documentation + examples.
+
+Changes in 0.01
+
+	Initial release, includes test suite.
