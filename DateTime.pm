@@ -2,7 +2,7 @@ package HTML::Menu::DateTime;
 use strict;
 use Carp;
 
-our $VERSION = '0.92';
+our $VERSION = '0.93';
 
 our $DEFAULT_MONTH_FORMAT = 'long';
 

@@ -1,3 +1,7 @@
+Changes in 0.93
+
+	Fixed locale tests when DateTime::Locale isn't installed.
+
 Changes in 0.92
 
 	New locale() method and new() now accepts 'locale' setting, requires 

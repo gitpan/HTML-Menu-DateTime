@@ -9,7 +9,7 @@ BEGIN {
 SKIP: {
   eval { require DateTime::Locale };
   
-  skip "DateTime::Locale not installed", TEST_COUNT, if $@;
+  skip "DateTime::Locale not installed", TEST_COUNT-1, if $@;
   
   my $ds1 = HTML::Menu::DateTime->new (
     locale => 'en_BG',
