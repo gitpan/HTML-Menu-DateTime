@@ -23,6 +23,7 @@ t/date_input_args1.t
 t/date_input_args2.t
 t/date.t
 t/empty_first.t
+t/locale.t
 t/month_format.t
 t/multi_objects.t
 t/multi_selects.t

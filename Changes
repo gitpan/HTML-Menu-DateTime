@@ -1,3 +1,16 @@
+Changes in 0.92
+
+	New locale() method and new() now accepts 'locale' setting, requires 
+	DateTime::Locale.
+	Added Template::Magic example files and tutorial (thanks to Domizio 
+	Demichelis).
+	Dropped month_format('ornate') option introduced in 0.91_01.
+	Fixed up POD formatting.
+
+Changes in 0.91_01 (Developer release)
+
+	New month_format() method and new() now accepts 'month_format' setting.
+
 Changes in 0.91
 
 	All menu methods now accept an arreyref to allow multiple selections.
@@ -6,8 +19,8 @@ Changes in 0.91
 Changes in 0.90
 
 	Changed Name to HTML::Menu::DateTime.
-	Changed all methods and flags from dayMenu style to day_menu (Suggested by 
-	Mark Stosberg).
+	Changed all methods and flags from dayMenu style to day_menu (Suggested 
+	by Mark Stosberg).
 	Renamed html-template example files from *.html to *.tmpl.
 	Added example files for template-toolkit.
 	Added POD examples for template-toolkit.
@@ -21,12 +34,13 @@ Changes in 0.80
 Changes in 0.70
 
 	Removed all package-wide datetime variables, so that it should work with 
-	mod_perl (untested). The variables are now initialised upon object creation.
+	mod_perl (untested). The variables are now initialised upon object 
+	creation.
 
 Changes in 0.60
 
-	In secondMenu minuteMenu hourMenu dayMenu and monthMenu methods,
-	all menu values are prefixed with '0' if less than 10.
+	In secondMenu minuteMenu hourMenu dayMenu and monthMenu methods, all menu 
+	values are prefixed with '0' if less than 10.
 
 Changes in 0.50
 
@@ -52,7 +66,8 @@ Changes in 0.20
 Changes in 0.10
 
 	Added 'date' to new() - with tests.
-	Made startYear / endYear accept zero to start / end range on selected year.
+	Made startYear / endYear accept zero to start / end range on selected 
+	year.
 	More documentation + examples.
 
 Changes in 0.01

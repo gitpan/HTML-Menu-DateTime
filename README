@@ -20,10 +20,15 @@ To install this module type the following:
    make test
    make install
 
+WARNING
+
+The 'ornate' option to month_format(), available only in developer release 
+0.90_01 has been dropped, as it isn't supported by the DateTime::Locale 
+module (see locale()).
 
 COPYRIGHT
 
-Copyright 2004, Carl Franks.  All rights reserved.  
+Copyright 2004-2005, Carl Franks.  All rights reserved.  
 
 This library is free software; you can redistribute it and/or modify it under 
 the same terms as Perl itself.
