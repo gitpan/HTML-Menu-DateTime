@@ -2,9 +2,12 @@ package HTML::Menu::DateTime;
 use strict;
 use Carp;
 
-our $VERSION = '0.93';
+our $VERSION = '0.94';
 
 our $DEFAULT_MONTH_FORMAT = 'long';
+our $DEFAULT_SECOND_INCREMENT = 1;
+our $DEFAULT_MINUTE_INCREMENT = 1;
+
 
 sub new {
   my $pkg = shift;
@@ -19,17 +22,19 @@ sub new {
   $YEAR  += 1900;
   
   # setup defaults, then override with input (if any)
-  my $self = bless ({second       => $SEC,
-                     minute       => $MIN,
-                     hour         => $HOUR,
-                     day          => $DAY,
-                     month        => $MONTH,
-                     year         => $YEAR,
-                     date         => $date,
-                     less_years   => 5,
-                     plus_years   => 5,
-                     month_format => $DEFAULT_MONTH_FORMAT,
-                     locale       => undef,
+  my $self = bless ({second           => $SEC,
+                     minute           => $MIN,
+                     hour             => $HOUR,
+                     day              => $DAY,
+                     month            => $MONTH,
+                     year             => $YEAR,
+                     date             => $date,
+                     less_years       => 5,
+                     plus_years       => 5,
+                     month_format     => $DEFAULT_MONTH_FORMAT,
+                     locale           => undef,
+                     second_increment => $DEFAULT_SECOND_INCREMENT,
+                     minute_increment => $DEFAULT_MINUTE_INCREMENT,
                      @_,
                     }, $pkg);
   
@@ -139,7 +144,7 @@ sub second_menu {
     push @loop, {value => '', label => $self->{empty_first}};
   }
   
-  for my $item ('00'..'09',10..59) {
+  for my $item ($self->_increment('second')) {
     my %data = (
       value => $item,
       label => $item,
@@ -164,7 +169,7 @@ sub minute_menu {
     push @loop, {value => '', label => $self->{empty_first}};
   }
   
-  for my $item ('00'..'09',10..59) {
+  for my $item ($self->_increment('minute')) {
     my %data = (
       value => $item,
       label => $item,
@@ -385,6 +390,18 @@ sub locale {
   $self->{locale} = defined $_[0] ? shift : undef;
 }
 
+sub second_increment {
+  my $self = shift;
+  
+  $self->{second_increment} = defined $_[0] ? shift : $DEFAULT_SECOND_INCREMENT;
+}
+
+sub minute_increment {
+  my $self = shift;
+  
+  $self->{minute_increment} = defined $_[0] ? shift : $DEFAULT_MINUTE_INCREMENT;
+}
+
 ###
 
 sub _parse_input {
@@ -412,6 +429,24 @@ sub _parse_input {
   return \@val;
 }
 
+
+sub _increment {
+  my ($self, $type) = @_;
+  
+  my $inc = $self->{"${type}_increment"};
+  
+  croak("${type}_increment must be between 1 and 59")
+    unless (($inc >= 1) && ($inc <= 59));
+  
+  my @num;
+  
+  for (my $i=0; $i<=59; $i+=$inc) {
+    push @num, sprintf("%02d", $i);
+  }
+  
+  return @num;
+}
+
 1;
 
 __END__
@@ -419,7 +454,8 @@ __END__
 =head1 NAME
 
 HTML::Menu::DateTime - Easily create HTML select menus for use with the 
-L<HTML::Template> or L<Template::Toolkit> templating systems.
+L<HTML::Template|HTML::Template>, L<Template Toolkit|Template> or 
+L<Template::Magic|Template::Magic> templating systems.
 
 =head1 SYNOPSIS
 
@@ -428,9 +464,7 @@ L<HTML::Template> or L<Template::Toolkit> templating systems.
   my $menu = HTML::Menu::DateTime->new (
     date         => '2004-02-26',
     no_select    => 1,
-    empty_first  => '',
-    month_format => 'short',
-    locale       => 'en_GB');
+    empty_first  => '');
   
   $menu->start_year (2000);
   $menu->end_year (2010);
@@ -440,6 +474,8 @@ L<HTML::Template> or L<Template::Toolkit> templating systems.
   
   $menu->month_format ('short');
   $menu->locale ('en_GB');
+  $menu->second_increment (15);
+  $menu->minute_increment (5);
   
   $menu->second_menu;
   $menu->minute_menu;
@@ -450,8 +486,10 @@ L<HTML::Template> or L<Template::Toolkit> templating systems.
 
 =head1 DESCRIPTION
 
-Creates data structures suitable for populating L<HTML::Template> or 
-L<Template::Toolkit> templates with dropdown date and time menus.
+Creates data structures suitable for populating 
+L<HTML::Template|HTML::Template>, L<Template Toolkit|Template> or 
+L<Template::Magic|Template::Magic> templates with dropdown date and 
+time menus.
 
 Allows any number of dropdown menus to be displayed on a single page, each 
 independantly configurable.
@@ -482,12 +520,15 @@ needed. HTML Menus can be created as easily as:
 =head2 new()
 
   my $menu1 = HTML::Menu::DateTime->new 
-                (date        => $date,
-                 start_year  => $start,
-                 end_year    => $end,
-                 no_select   => 1,
-                 empty_first => 1,
-                 locale      => 'en_GB');
+                (date             => $date,
+                 start_year       => $start,
+                 end_year         => $end,
+                 no_select        => 1,
+                 empty_first      => 1,
+                 month_format     => 'short',
+                 locale           => 'en_GB',
+                 second_increment => 15,
+                 minute_increment => 5);
   
   my $menu2 = HTML::Menu::DateTime->new 
                 (less_years => $less,
@@ -512,7 +553,7 @@ Accepts the same values as the L<"start_year()"> method.
 
 =item end_year
 
-Accepts the same values as the L"<end_year()"> method.
+Accepts the same values as the L<"end_year()"> method.
 
 =item less_years
 
@@ -531,7 +572,7 @@ current date and time will be used).
 
 If defined, will create an extra list item at the start of each menu. The 
 form value will be the empty string (''), the value passed to 
-C<empty_first()> will be the visible label for the first item (the empty 
+L<"empty_first()"> will be the visible label for the first item (the empty 
 string is allowed).
 
 =item month_format
@@ -541,6 +582,14 @@ Accepts the same values as the L<"month_format()"> method.
 =item locale
 
 Accepts the same values as the L<"locale()"> method.
+
+=item second_increment
+
+Accepts the same values as the L<"second_increment()"> method.
+
+=item minute_increment
+
+Accepts the same values as the L<"minute_increment()"> method.
 
 =back
 
@@ -587,12 +636,13 @@ be changed as shown in the list below.
   $date->month_format ('decimal');   # 01, 02, ...
 
 The 'ornate' option, available only in developer release 0.90_01 has been 
-dropped, as it isn't supported by the L<DateTime::Locale> module (see 
-L<"locale()">).
+dropped, as it isn't supported by the L<DateTime::Locale|DateTime::Locale> 
+module (see L<"locale()">).
 
 =head2 locale()
 
-If locale is used, the L<DateTime::Locale> module must be installed.
+If locale is used, the L<DateTime::Locale|DateTime::Locale> module must be 
+installed.
 
 Setting locale changes the names used for the 'long' and 'short' options of 
 L<"month_format()">.
@@ -603,8 +653,44 @@ L<"month_format()">.
   # Januar, Februar, ...
 
 The value passed to locale is used as the argument to 
-C<DateTime::Locale-E<gt>load()>, see the L<DateTime::Locale> documentation 
-for a full list of available locales.
+C<DateTime::Locale-E<gt>load()>, see the L<DateTime::Locale|DateTime::Locale> 
+documentation for a full list of available locales.
+
+=head2 second_increment()
+
+The L<"second_menu()"> normally lists the seconds from '00' up to '59'. 
+Setting L<"second_increment()"> allows the menu to be shorter by skipping 
+some numbers.
+
+For example:
+
+  $date->second_increment (5);
+  # the menu contains: '00', '05', '10', '15' up to '55'
+  
+  $date->second_increment (15);
+  # the menu contains: '00', '15', '30', '45'
+
+L<"second_increment()"> can be set to any number from 1 to 59, though it 
+would normally make sense to only set it to a number that 60 can be divided 
+by, such as 5, 10, 15, 20 or 30.
+
+=head2 minute_increment()
+
+The L<"minute_menu()"> normally lists the minutes from '00' up to '59'. 
+Setting L<"minute_increment()"> allows the menu to be shorter by skipping 
+some numbers.
+
+For example:
+
+  $date->minute_increment (5);
+  # the menu contains: '00', '05', '10', '15' up to '55'
+  
+  $date->minute_increment (15);
+  # the menu contains: '00', '15', '30', '45'
+
+L<"minute_increment()"> can be set to any number from 1 to 59, though it 
+would normally make sense to only set it to a number that 60 can be divided 
+by, such as 5, 10, 15, 20 or 30.
 
 =head2 second_menu()
 
@@ -625,8 +711,7 @@ that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
 
   <SELECT name="second" size="2" multiple>
 
-Returns an array-reference suitable for passing directly to 
-C<$template-E<gt>param()>.
+Returns an array-reference suitable for passing directly to a template.
 
 =head2 minute_menu()
 
@@ -647,8 +732,7 @@ that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
 
   <SELECT name="minute" size="2" multiple>
 
-Returns an array-reference suitable for passing directly to 
-C<$template-E<gt>param()>.
+Returns an array-reference suitable for passing directly to a template.
 
 =head2 hour_menu()
 
@@ -669,8 +753,7 @@ that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
 
   <SELECT name="hour" size="2" multiple>
 
-Returns an array-reference suitable for passing directly to 
-C<$template-E<gt>param()>.
+Returns an array-reference suitable for passing directly to a template.
 
 =head2 day_menu()
 
@@ -691,8 +774,7 @@ that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
 
   <SELECT name="day" size="2" multiple>
 
-Returns an array-reference suitable for passing directly to 
-C<$template-E<gt>param()>.
+Returns an array-reference suitable for passing directly to a template.
 
 =head2 month_menu()
 
@@ -713,8 +795,7 @@ that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
 
   <SELECT name="month" size="2" multiple>
 
-Returns an array-reference suitable for passing directly to 
-C<$template-E<gt>param()>.
+Returns an array-reference suitable for passing directly to a template.
 
 =head2 year_menu()
 
@@ -735,8 +816,7 @@ that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
 
   <SELECT name="year" size="2" multiple>
 
-Returns an array-reference suitable for passing directly to 
-C<$template-E<gt>param()>.
+Returns an array-reference suitable for passing directly to a template.
 
 =head1 EXAMPLES
 
@@ -805,7 +885,7 @@ Then include both files in your main template:
 When this form is submitted, it will send 2 different values, 'month' and 
 'end_month'.
 
-=head2 Template::Toolkit
+=head2 Template Toolkit
 
 =head3 Templates
 
@@ -870,7 +950,7 @@ Then include both files in your main template:
 When this form is submitted, it will send 2 different values, 'month' and 
 'end_month'.
 
-=head2 HTML::Template
+=head2 Template::Magic
 
 =head3 Templates
 
@@ -994,7 +1074,7 @@ will fall within the range of years.
 When passing relative values to methods, ensure they are sent as strings. 
 C<+1> numerically means C<1> which is not the same as the string C<'+1'>.
 
-If a date is set in L<"new()"> and either 'less_years' or 'plus_years' set 
+If a date is set in L<"new()"> and either C<less_years> or C<plus_years>' set 
 and then a value passed to the L<"year_menu()"> method. The start / end year 
 of the menu will be relative to the value passed to L<"year_menu()">, not the 
 date set in L<"new()">.
@@ -1006,13 +1086,13 @@ will be selected.
 =head1 REQUIREMENTS
 
 If 'locale' is set in L<"new()">, or L<"locale()"> is set, then the 
-L<DateTime::Locale> module is required.
+L<DateTime::LocaleDateTime::Locale> module is required.
 
 =head1 DEPRECATED
 
 The 'ornate' option to L<"month_format()">, available only in developer 
 release 0.90_01 has been dropped, as it isn't supported by the 
-L<DateTime::Locale> module (see L<"locale()">).
+L<DateTime::LocaleDateTime::Locale> module (see L<"locale()">).
 
 =head1 TO DO
 
@@ -1032,7 +1112,8 @@ Support mailing list: html-menu-users@lists.sourceforge.net
 
 =head1 SEE ALSO
 
-L<HTML::Template>, L<Template::Toolkit>.
+L<HTML::Template|HTML::Template>, L<Template Toolkit|Template>, 
+L<Template::MagicTemplate::Magic>, L<DateTime::LocaleDateTime::Locale>.
 
 =head1 AUTHOR
 

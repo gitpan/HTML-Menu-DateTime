@@ -9,6 +9,12 @@ examples/html-template/minute.tmpl
 examples/html-template/month.tmpl
 examples/html-template/second.tmpl
 examples/html-template/year.tmpl
+examples/template-magic/day.html
+examples/template-magic/hour.html
+examples/template-magic/minute.html
+examples/template-magic/month.html
+examples/template-magic/second.html
+examples/template-magic/year.html
 examples/template-toolkit/day.html
 examples/template-toolkit/hour.html
 examples/template-toolkit/minute.html
@@ -24,6 +30,7 @@ t/date_input_args2.t
 t/date.t
 t/empty_first.t
 t/locale.t
+t/minute_increment.t
 t/month_format.t
 t/multi_objects.t
 t/multi_selects.t
@@ -31,6 +38,7 @@ t/no_select.t
 t/now_input_args.t
 t/now.t
 t/pre_1000.t
+t/second_increment.t
 t/start_end.t
 t/zero_less.t
 t/zero_plus.t

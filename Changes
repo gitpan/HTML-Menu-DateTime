@@ -1,3 +1,10 @@
+Changes in 0.94
+
+	Fixed errors in POD documentation.
+	Added missing template-magic files to MANIFEST
+	New second_increment() and new() now accepts 'second_increment' setting.
+	New minute_increment() and new() now accepts 'minute_increment' setting.
+
 Changes in 0.93
 
 	Fixed locale tests when DateTime::Locale isn't installed.
