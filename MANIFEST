@@ -1,6 +1,7 @@
 Makefile.PL
 MANIFEST
 Changes
+README
 DateTime.pm
 examples/html-template/day.tmpl
 examples/html-template/hour.tmpl
@@ -22,7 +23,8 @@ t/date_input_args1.t
 t/date_input_args2.t
 t/date.t
 t/empty_first.t
-t/multi.t
+t/multi_objects.t
+t/multi_selects.t
 t/no_select.t
 t/now_input_args.t
 t/now.t

@@ -1,3 +1,8 @@
+Changes in 0.91
+
+	All menu methods now accept an arreyref to allow multiple selections.
+	Improved documentation.
+
 Changes in 0.90
 
 	Changed Name to HTML::Menu::DateTime.

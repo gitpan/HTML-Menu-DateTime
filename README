@@ -1,0 +1,30 @@
+		HTML::Template::Dropdown::Menu
+
+DESCRIPTION
+
+Easily create HTML dropdown menus for use with HTML::Template or 
+Template::Toolkit.
+
+
+DOCUMENTATION
+
+The documentation is in Template.pm in the form of POD format perldocs.
+
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+
+COPYRIGHT
+
+Copyright 2004, Carl Franks.  All rights reserved.  
+
+This library is free software; you can redistribute it and/or modify it under 
+the same terms as Perl itself.
+

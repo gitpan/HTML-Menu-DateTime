@@ -2,8 +2,8 @@ package HTML::Menu::DateTime;
 use strict;
 use Carp;
 
-our $VERSION = '0.90';
-  
+our $VERSION = '0.91';
+
 
 sub new {
   my $pkg = shift;
@@ -127,15 +127,8 @@ sub new {
 
 
 sub second_menu {
-  my $self = shift;
-  my $select;
-  
-  if (defined $_[0]) {
-    $select = _parse_input ($self->{second}, shift);
-  }
-  else {
-    $select = $self->{second};
-  }
+  my $self   = shift;
+  my $select = _parse_input ($self->{second}, @_);
   
   my @loop;
   
@@ -143,12 +136,12 @@ sub second_menu {
     push @loop, {value => '', label => $self->{empty_first}};
   }
   
-  for ('00'..'09',10..59) {
+  for my $item ('00'..'09',10..59) {
     my %data = (
-      value => $_,
-      label => $_
+      value => $item,
+      label => $item,
     );
-    if ( $_ == $select && ! $self->{no_select}) {
+    if (! $self->{no_select} && (grep {$_ == $item} @$select)) {
       $data{selected} = ' selected ';
     }
     push @loop, \%data;
@@ -159,15 +152,8 @@ sub second_menu {
 
 
 sub minute_menu {
-  my $self = shift;
-  my $select;
-  
-  if (defined $_[0]) {
-    $select = _parse_input ($self->{minute}, shift);
-  }
-  else {
-    $select = $self->{minute};
-  }
+  my $self   = shift;
+  my $select = _parse_input ($self->{minute}, @_);
   
   my @loop;
   
@@ -175,12 +161,12 @@ sub minute_menu {
     push @loop, {value => '', label => $self->{empty_first}};
   }
   
-  for ('00'..'09',10..59) {
+  for my $item ('00'..'09',10..59) {
     my %data = (
-      value => $_,
-      label => $_
+      value => $item,
+      label => $item,
     );
-    if ( $_ == $select && ! $self->{no_select}) {
+    if (! $self->{no_select} && (grep {$_ == $item} @$select)) {
       $data{selected} = ' selected ';
     }
     push @loop, \%data;
@@ -191,15 +177,8 @@ sub minute_menu {
 
 
 sub hour_menu {
-  my $self = shift;
-  my $select;
-  
-  if (defined $_[0]) {
-    $select = _parse_input ($self->{hour}, shift);
-  }
-  else {
-    $select = $self->{hour};
-  }
+  my $self   = shift;
+  my $select = _parse_input ($self->{hour}, @_);
   
   my @loop;
   
@@ -207,12 +186,12 @@ sub hour_menu {
     push @loop, {value => '', label => $self->{empty_first}};
   }
   
-  for ('00'..'09',10..23) {
+  for my $item ('00'..'09',10..23) {
     my %data = (
-      value => $_,
-      label => $_
+      value => $item,
+      label => $item,
     );
-    if ( $_ == $select && ! $self->{no_select}) {
+    if (! $self->{no_select} && (grep {$_ == $item} @$select)) {
       $data{selected} = ' selected ';
     }
     push @loop, \%data;
@@ -223,15 +202,8 @@ sub hour_menu {
 
 
 sub day_menu {
-  my $self = shift;
-  my $select;
-  
-  if (defined $_[0]) {
-    $select = _parse_input ($self->{day}, shift);
-  }
-  else {
-    $select = $self->{day};
-  }
+  my $self   = shift;
+  my $select = _parse_input ($self->{day}, @_);
   
   my @loop;
   
@@ -239,12 +211,12 @@ sub day_menu {
     push @loop, {value => '', label => $self->{empty_first}};
   }
   
-  for ('01'..'09', 10..31) {
+  for my $item ('01'..'09', 10..31) {
     my %data = (
-      value => $_,
-      label => $_
+      value => $item,
+      label => $item,
     );
-    if ( $_ == $select && ! $self->{no_select}) {
+    if (! $self->{no_select} && (grep {$_ == $item} @$select)) {
       $data{selected} = ' selected ';
     }
     push @loop, \%data;
@@ -255,15 +227,8 @@ sub day_menu {
 
 
 sub month_menu {
-  my $self = shift;
-  my $select;
-  
-  if (defined $_[0]) {
-    $select = _parse_input ($self->{month}, shift);
-  }
-  else {
-    $select = $self->{month};
-  }
+  my $self   = shift;
+  my $select = _parse_input ($self->{month}, @_);
   
   my %mon;
   @mon{'01'..'09', 10..12} = qw/January February March April May June July 
@@ -274,12 +239,12 @@ sub month_menu {
     push @loop, {value => '', label => $self->{empty_first}};
   }
   
-  for ( sort {$a <=> $b} keys %mon ) {
+  for my $item (sort {$a <=> $b} keys %mon) {
     my %data = (
-      value => $_,
-      label => $mon{$_}
+      value => $item,
+      label => $mon{$item},
     );
-    if ( $_ == $select && ! $self->{no_select}) {
+    if (! $self->{no_select} && (grep {$_ == $item} @$select)) {
       $data{selected} = ' selected ';
     }
     push @loop, \%data;
@@ -290,35 +255,39 @@ sub month_menu {
 
 
 sub year_menu {
-  my $self = shift;
-  my $select;
-  my ( $start, $end );
-  
-  if (defined $_[0]) {
-    $select = _parse_input ($self->{year}, shift);
-  }
-  else {
-    $select = $self->{year};
-  }
+  my $self   = shift;
+  my $select = _parse_input ($self->{year}, @_);
+  my $single = @$select == 1 ? $select->[0] : undef;
   
   croak('selected year must be above 0') unless $select > 0;
   
+  my ($start, $end);
+  
   if (defined $self->{start_year} ) {
     $start = $self->{start_year};
-    croak('start_year cannot be after selected year') unless $start <= $select;
+    
+    croak('start_year cannot be after selected year') 
+      if grep {$_ < $start} @$select;
   }
   else {
-    $start = $select - $self->{less_years};
+    croak('cannot use less_years with multiple selections')
+      if ! $single;
+    
+    $start = $single - $self->{less_years};
   }
   
   croak('start year must be above 0') unless $start > 0;
   
   if (defined $self->{end_year} ) {
     $end = $self->{end_year};
-    croak('end_year cannot be before selected year') unless $end >= $select;
+    croak('end_year cannot be before selected year') 
+      if grep {$_ > $end} @$select;
   }
   else {
-    $end = $select + $self->{plus_years};
+    croak('cannot use plus_years with multiple selections') 
+      if ! $single;
+    
+    $end = $single + $self->{plus_years};
   }
   
   croak('end year must be after start year') if $start > $end;
@@ -330,12 +299,12 @@ sub year_menu {
     push @loop, {value => '', label => $self->{empty_first}};
   }
   
-  for (@years) {
+  for my $item (@years) {
     my %data = (
-      value => $_,
-      label => $_
+      value => $item,
+      label => $item,
     );
-    if ( $_ == $select && ! $self->{no_select}) {
+    if (! $self->{no_select} && (grep {$_ == $item} @$select)) {
       $data{selected} = ' selected ';
     }
     push @loop, \%data;
@@ -377,19 +346,27 @@ sub plus_years {
 
 sub _parse_input {
   my ($time, $i) = @_;
+  my @val;
   
-  if ($i =~ /^\d+$/) {
-    return $i;
+  return [$time] unless defined $i;
+  
+  if (ref($i) eq 'ARRAY') {
+    @val = grep {/^\d+$/} @$i;
+  }
+  elsif ($i =~ /^\d+$/) {
+    push @val, $i;
   }
   elsif ($i =~ /^\+(\d+)$/) {
-    return $time + $1;
+    push @val, $time + $1;
   }
   elsif ($i =~ /^\-(\d+)$/) {
-    return $time - $1;
+    push @val, $time - $1;
   }
   else {
     croak('invalid input at _parse_input()');
   }
+  
+  return \@val;
 }
 
 1;
@@ -400,8 +377,8 @@ __END__
 
 HTML::Menu::DateTime
 
-Easily create HTML dropdown menus for use with HTML::Template or 
-Template::Toolkit.
+Easily create HTML select menus for use with the HTML::Template or 
+Template::Toolkit templating systems.
 
 =head1 SYNOPSIS
 
@@ -433,21 +410,17 @@ Template::Toolkit templates with dropdown date and time menus.
 Allows any number of dropdown menus to be displayed on a single page, each 
 independantly configurable.
 
+Distribution includes ready-to-use template include files.
+
 =head1 MOTIVATION
 
 To keep the creation of HTML completely seperate from the program, to easily 
-allow css styles, javascript, etc. to be added to individual menus.
+allow a non-programmer to add css styles, javascript, etc. to individual 
+menus.
 
 To make the creation of menus as simple as possible, with extra options if 
 needed. Menus can be created as easily as:
 
-  #!/usr/bin/perl
-  use strict;
-  use warnings;
-  use CGI ':standard';
-  use HTML::Template;
-  use HTML::Menu::DateTime;
-  
   my $template = HTML::Template->new (filename => $filename);
   
   my $menu = HTML::Menu::DateTime->new;
@@ -456,7 +429,6 @@ needed. Menus can be created as easily as:
                     month => $menu->month_menu,
                     year  => $menu->year_menu);
   
-  print header();
   print $template->output;
 
 =head1 METHODS
@@ -474,7 +446,7 @@ needed. Menus can be created as easily as:
                 (less_years => $less,
                  plus_years => $plus);
 
-C<new()> accepts the following arguments (in the form of a hash or list):
+C<new()> accepts the following arguments:
 
 =over
 
@@ -485,7 +457,7 @@ Can be in any of the formats 'YYYY-MM-DD hh:mm:ss', 'YYYYMMDDhhmmss',
 'hh:mm:ss'.
 
 The date passed to C<new()> is used to decide which item should be selected 
-in all of the *_menu methods.
+in all of the menu methods.
 
 =item start_year, end_year, less_years, plus_years
 
@@ -493,11 +465,12 @@ The equivalent of calling the method of the same name.
 
 =item no_select
 
-If true, ensures no item in any menu will be selected.
+If true, ensures no item in any menu will be selected. (Otherwise, the current 
+date and time will be used).
 
 =item empty_first
 
-If 'defined', will create an extra list item at the start of each menu. The 
+If defined, will create an extra list item at the start of each menu. The 
 form value will be the empty string (''), the value passed to 
 C<empty_first('value')> will be the visible label for the first item (the 
 empty string is allowed).
@@ -523,6 +496,8 @@ Sets the absolute year that the dropdown menu will end on.
 Sets the year that the dropdown menu will start from, relative to the selected 
 year.
 
+May not be used if multiple values for selection are passed to C<year_menu()>.
+
 =head2 plus_years()
 
   $date->plus_years (7);
@@ -530,19 +505,139 @@ year.
 Sets the year that the dropdown menu will end on, relative to the selected 
 year.
 
-=head2 second_menu() minute_menu() hour_menu() day_menu() month_menu() year_menu()
+May not be used if multiple values for selection are passed to C<year_menu()>.
 
-  $template->param (second => $date->second_menu,
-                    minute => $date->minute_menu (0),
-                    hour   => $date->hour_menu ('-1'),
-                    day    => $date->day_menu ('+1'),
-                    month  => $date->month_menu (12),
-                    year   => $date->year_menu);
+=head2 second_menu()
 
-Accepts a value that will override the date (if any) in the C<new()> method. 
-Accepts relative values such as '+1' or '-1'.
+  $date->second_menu;
+  $date->second_menu (0);
+  $date->second_menu ('+1');
+  $date->second_menu ([0, 1]);
 
-Returns an array-reference suitable for passing directly to $template->param().
+Accepts a value that will override the date (if any) in the C<new()> method.
+
+Argurment can be a number (0-59), a value such as '+1' or '-1' (relative to 
+either the date passed to C<new()> or the current time) or an arrayref of 
+number values.
+
+Passing an arrayref of values will cause more than one item in the menu list 
+to be selected. This will require the HTML in the template to be changed so 
+that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
+
+  <SELECT name="second" size="2" multiple>
+
+Returns an array-reference suitable for passing directly to 
+C<$template->param()>.
+
+=head2 minute_menu()
+
+  $date->minute_menu;
+  $date->minute_menu (0);
+  $date->minute_menu ('+1');
+  $date->minute_menu ([0, 1]);
+
+Accepts a value that will override the date (if any) in the C<new()> method.
+
+Argurment can be a number (0-59), a value such as '+1' or '-1' (relative to 
+either the date passed to C<new()> or the current time) or an arrayref of 
+number values.
+
+Passing an arrayref of values will cause more than one item in the menu list 
+to be selected. This will require the HTML in the template to be changed so 
+that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
+
+  <SELECT name="minute" size="2" multiple>
+
+Returns an array-reference suitable for passing directly to 
+C<$template->param()>.
+
+=head2 hour_menu()
+
+  $date->hour_menu;
+  $date->hour_menu (0);
+  $date->hour_menu ('+1');
+  $date->hour_menu ([0, 1]);
+
+Accepts a value that will override the date (if any) in the C<new()> method.
+
+Argurment can be a number (0-23), a value such as '+1' or '-1' (relative to 
+either the date passed to C<new()> or the current time) or an arrayref of 
+number values.
+
+Passing an arrayref of values will cause more than one item in the menu list 
+to be selected. This will require the HTML in the template to be changed so 
+that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
+
+  <SELECT name="hour" size="2" multiple>
+
+Returns an array-reference suitable for passing directly to 
+C<$template->param()>.
+
+=head2 day_menu()
+
+  $date->day_menu;
+  $date->day_menu (0);
+  $date->day_menu ('+1');
+  $date->day_menu ([0, 1]);
+
+Accepts a value that will override the date (if any) in the C<new()> method.
+
+Argurment can be a number (1-31), a value such as '+1' or '-1' (relative to 
+either the date passed to C<new()> or the current time) or an arrayref of 
+number values.
+
+Passing an arrayref of values will cause more than one item in the menu list 
+to be selected. This will require the HTML in the template to be changed so 
+that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
+
+  <SELECT name="day" size="2" multiple>
+
+Returns an array-reference suitable for passing directly to 
+C<$template->param()>.
+
+=head2 month_menu()
+
+  $date->month_menu;
+  $date->month_menu (0);
+  $date->month_menu ('+1');
+  $date->month_menu ([0, 1]);
+
+Accepts a value that will override the date (if any) in the C<new()> method.
+
+Argurment can be a number (1-12), a value such as '+1' or '-1' (relative to 
+either the date passed to C<new()> or the current time) or an arrayref of 
+number values.
+
+Passing an arrayref of values will cause more than one item in the menu list 
+to be selected. This will require the HTML in the template to be changed so 
+that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
+
+  <SELECT name="month" size="2" multiple>
+
+Returns an array-reference suitable for passing directly to 
+C<$template->param()>.
+
+=head2 year_menu()
+
+  $date->year_menu;
+  $date->year_menu (0);
+  $date->year_menu ('+1');
+  $date->year_menu ([0, 1]);
+
+Accepts a value that will override the date (if any) in the C<new()> method.
+
+Argurment can be a number (0 or higher), a value such as '+1' or '-1' 
+(relative to either the date passed to C<new()> or the current time) or an 
+arrayref of number values.
+
+Passing an arrayref of values will cause more than one item in the menu list 
+to be selected. This will require the HTML in the template to be changed so 
+that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
+
+  <SELECT name="year" size="2" multiple>
+
+Returns an array-reference suitable for passing directly to 
+C<$template->param()>.
 
 =head1 EXAMPLES
 
@@ -676,7 +771,7 @@ When this form is submitted, it will send 2 different values, 'month' and
 
 =head1 DEFAULT VALUES
 
-If a date is not passed to the C<new()> or *_menu() methods, then 
+If a date is not passed to the C<new()> or menu methods, then 
 C<localtime(time)> is called.
 
 If neither 'start_year' or 'less_years' is set, the default used is 
@@ -693,10 +788,8 @@ None.
 
 Years before 1000 AD passed to the C<new()> method in the 'YYYYMMDDhhmmss' 
 format should be passed as strings, as the leading zeros are necessary. (e.g. 
-'09990101000000').
-
-Years before 1000 AD may be passed to the C<year_menu()> method as literal 
-numbers.
+'09990101000000'). (Years before 1000 AD may be passed to the C<year_menu()> 
+method as literal numbers.)
 
 Years before 1 AD are not allowed at all.
 
@@ -720,15 +813,11 @@ then a value passed to the c<year_menu()> method. The start / end year of the
 menu will be relative to the value passed to C<year_menu()>, not the date set 
 in C<new()>.
 
-'Relative' parameter values sent to *_menu methods, which result in 
+'Relative' parameter values sent to menu methods, which result in 
 out-of-range selections are silently ignored and no item in the output menu 
 will be selected.
 
 =head1 TO DO
-
-Allow an arrayref to be passed to the *_menu methods, to allow for selection 
-of more than one item in a menu (for use with SELECT 'lists' rather than 
-menus).
 
 Add options to allow 'short' month names to be output, month numbers to be 
 output, or other language month names to be output.
@@ -736,9 +825,16 @@ output, or other language month names to be output.
 Add option to output html/xhtml menus rather than data structures for 
 templates.
 
-=head1 SUPPORT
+May change C<year_menu()> such that less_years / plus_years works with 
+multiple selections - it would probably have to start / end the list in 
+relation to the lowest / highest year.
 
-Mailing list: html-menu-users@lists.sourceforge.net
+=head1 SUPPORT / BUGS
+
+Please log bugs, feature requests and patch submissions at 
+L<http://sourceforge.net/projects/html-menu>.
+
+Support mailing list: html-menu-users@lists.sourceforge.net
 
 =head1 SEE ALSO
 
