@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 16;
+use Test::More tests => 18;
 
 BEGIN {
 	use_ok('HTML::Menu::DateTime');
@@ -32,7 +32,10 @@ ok( defined $d->[3]{'selected'}, 'correct day selected');
 ok( defined $mo->[11]{'selected'}, 'correct month selected');
 ok( defined $y->[1]{'selected'}, 'correct year selected');
 
-ok( $y->[0]->{'value'} == 1975 , 'correct year value');
-ok( $y->[1]->{'value'} == 1976 , 'correct year value');
-ok( $y->[2]->{'value'} == 1977 , 'correct year value');
+ok( $y->[0]->{'value'} == 1975, 'correct year value');
+ok( $y->[1]->{'value'} == 1976, 'correct year value');
+ok( $y->[2]->{'value'} == 1977, 'correct year value');
+
+ok( $ds->start_year() == 1975, 'start_year getter ok');
+ok( $ds->end_year() == 1977,   'end_year getter ok');
 

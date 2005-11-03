@@ -1,8 +1,9 @@
 package HTML::Menu::DateTime;
 use strict;
-use Carp;
+use Carp 'croak';
 
-our $VERSION = '0.94';
+our $VERSION = '1.00';
+our $AUTOLOAD;
 
 our $DEFAULT_MONTH_FORMAT = 'long';
 our $DEFAULT_SECOND_INCREMENT = 1;
@@ -35,6 +36,7 @@ sub new {
                      locale           => undef,
                      second_increment => $DEFAULT_SECOND_INCREMENT,
                      minute_increment => $DEFAULT_MINUTE_INCREMENT,
+                     html             => '',
                      @_,
                     }, $pkg);
   
@@ -130,13 +132,15 @@ sub new {
     else {croak("invalid 'date' format");}
   }
   
+  
   return $self;
 }
 
 
 sub second_menu {
-  my $self   = shift;
-  my $select = _parse_input ($self->{second}, @_);
+  my $self = shift;
+  
+  my ($select, $html) = _parse_input ($self->{second}, @_);
   
   my @loop;
   
@@ -154,14 +158,19 @@ sub second_menu {
     }
     push @loop, \%data;
   }
+  
+  if ($self->{html}) {
+    return $self->_html( $select, $html, \@loop );
+  }
 
   return \@loop;
 }
 
 
 sub minute_menu {
-  my $self   = shift;
-  my $select = _parse_input ($self->{minute}, @_);
+  my $self = shift;
+  
+  my ($select, $html) = _parse_input ($self->{minute}, @_);
   
   my @loop;
   
@@ -179,14 +188,19 @@ sub minute_menu {
     }
     push @loop, \%data;
   }
+  
+  if ($self->{html}) {
+    return $self->_html( $select, $html, \@loop );
+  }
 
   return \@loop;
 }
 
 
 sub hour_menu {
-  my $self   = shift;
-  my $select = _parse_input ($self->{hour}, @_);
+  my $self = shift;
+  
+  my ($select, $html) = _parse_input ($self->{hour}, @_);
   
   my @loop;
   
@@ -204,14 +218,19 @@ sub hour_menu {
     }
     push @loop, \%data;
   }
+  
+  if ($self->{html}) {
+    return $self->_html( $select, $html, \@loop );
+  }
 
   return \@loop;
 }
 
 
 sub day_menu {
-  my $self   = shift;
-  my $select = _parse_input ($self->{day}, @_);
+  my $self = shift;
+  
+  my ($select, $html) = _parse_input ($self->{day}, @_);
   
   my @loop;
   
@@ -229,14 +248,19 @@ sub day_menu {
     }
     push @loop, \%data;
   }
+  
+  if ($self->{html}) {
+    return $self->_html( $select, $html, \@loop );
+  }
 
   return \@loop;
 }
 
 
 sub month_menu {
-  my $self   = shift;
-  my $select = _parse_input ($self->{month}, @_);
+  my $self = shift;
+  
+  my ($select, $html) = _parse_input ($self->{month}, @_);
   
   my @decimal = ('01'..'09', 10..12);
   my $locale;
@@ -283,14 +307,20 @@ sub month_menu {
     }
     push @loop, \%data;
   }
+  
+  if ($self->{html}) {
+    return $self->_html( $select, $html, \@loop );
+  }
 
   return \@loop;
 }
 
 
 sub year_menu {
-  my $self   = shift;
-  my $select = _parse_input ($self->{year}, @_);
+  my $self = shift;
+  
+  my ($select, $html) = _parse_input ($self->{year}, @_);
+  
   my $single = @$select == 1 ? $select->[0] : undef;
   
   croak('selected year must be above 0') unless $select > 0;
@@ -299,9 +329,6 @@ sub year_menu {
   
   if (defined $self->{start_year} ) {
     $start = $self->{start_year};
-    
-    croak('start_year cannot be after selected year') 
-      if grep {$_ < $start} @$select;
   }
   else {
     croak('cannot use less_years with multiple selections')
@@ -309,6 +336,9 @@ sub year_menu {
     
     $start = $single - $self->{less_years};
   }
+  
+  croak('start_year cannot be after selected year') 
+    if grep {$_ < $start} @$select;
   
   croak('start year must be above 0') unless $start > 0;
   
@@ -343,90 +373,85 @@ sub year_menu {
     }
     push @loop, \%data;
   }
+  
+  if ($self->{html}) {
+    return $self->_html( $select, $html, \@loop );
+  }
 
   return \@loop;
 }
 
-#####
+### PUBLIC METHODS ###
 
-sub start_year {
-  my $self = shift;
-
-  $self->{start_year} = defined $_[0] ? shift : undef;
-}
-
-
-sub end_year {
-  my $self = shift;
-
-  $self->{end_year} = defined $_[0] ? shift : undef;
-}
-
-
-sub less_years {
-  my $self = shift;
-
-  $self->{less_years} = defined $_[0] ? shift : undef;
-}
+my @public_accessors = qw/
+  start_year
+  end_year
+  less_years
+  plus_years
+  month_format
+  locale
+  second_increment
+  minute_increment
+  html
+/;
 
 
-sub plus_years {
-  my $self = shift;
-
-  $self->{plus_years} = defined $_[0] ? shift : undef;
-}
-
-
-sub month_format {
-  my $self = shift;
-
-  $self->{month_format} = defined $_[0] ? shift : $DEFAULT_MONTH_FORMAT;
-}
-
-
-sub locale {
+sub AUTOLOAD {
   my $self = shift;
   
-  $self->{locale} = defined $_[0] ? shift : undef;
-}
-
-sub second_increment {
-  my $self = shift;
+  my $method = $AUTOLOAD;
+  $method =~ s/.*://;
   
-  $self->{second_increment} = defined $_[0] ? shift : $DEFAULT_SECOND_INCREMENT;
-}
-
-sub minute_increment {
-  my $self = shift;
+  croak "method '$method' is not defined"
+    unless grep {$method eq $_} @public_accessors;
   
-  $self->{minute_increment} = defined $_[0] ? shift : $DEFAULT_MINUTE_INCREMENT;
+  $self->{$method} = shift if @_;
+  
+  return $self->{$method} if defined $self->{$method};
 }
 
-###
+
+### so AUTOLOAD doesn't get it
+sub DESTROY {}
+
+
+### PRIVATE METHODS ###
 
 sub _parse_input {
-  my ($time, $i) = @_;
-  my @val;
+  my $time = shift;
+  my ($i, $html, @val);
   
-  return [$time] unless defined $i;
+  if (scalar @_ == 2) {
+    ($i, $html) = @_;
+  }
+  elsif (scalar @_ == 1) {
+    if (ref($_[0]) eq 'HASH') {
+      $html = shift;
+    }
+    else {
+      $i = shift;
+    }
+  }
+  
+  return ([$time], $html) unless defined $i;
   
   if (ref($i) eq 'ARRAY') {
     @val = grep {/^\d+$/} @$i;
   }
   elsif ($i =~ /^\d+$/) {
-    push @val, $i;
+    @val = $i;
   }
   elsif ($i =~ /^\+(\d+)$/) {
-    push @val, $time + $1;
+    @val = $time + $1;
   }
   elsif ($i =~ /^\-(\d+)$/) {
-    push @val, $time - $1;
+    @val = $time - $1;
   }
   else {
     croak('invalid input at _parse_input()');
   }
   
-  return \@val;
+  return \@val, $html;
 }
 
 
@@ -447,15 +472,44 @@ sub _increment {
   return @num;
 }
 
+
+sub _html {
+  my ($self, $select, $html, $loop) = @_;
+  
+  require HTML::Menu::Select;
+  
+  my %args = (
+    values => [ map { $_->{value} } @$loop ],
+    labels => { map { $_->{value} => $_->{label} } @$loop },
+  );
+  
+  if (! $self->{no_select}) {
+    $args{default} = $select;
+  }
+  
+  if (defined $html) {
+    $args{$_} = $html->{$_} for keys %$html;
+  }
+  
+  
+  if ($self->{html} eq 'menu') {
+    return HTML::Menu::Select::menu( %args );
+  }
+  elsif ($self->{html} eq 'options') {
+    return HTML::Menu::Select::options( %args );
+  }
+  else {
+    croak "unknown html option";
+  }
+}
+
 1;
 
 __END__
 
 =head1 NAME
 
-HTML::Menu::DateTime - Easily create HTML select menus for use with the 
-L<HTML::Template|HTML::Template>, L<Template Toolkit|Template> or 
-L<Template::Magic|Template::Magic> templating systems.
+HTML::Menu::DateTime - Easily create popup menus for use with templates.
 
 =head1 SYNOPSIS
 
@@ -477,6 +531,8 @@ L<Template::Magic|Template::Magic> templating systems.
   $menu->second_increment (15);
   $menu->minute_increment (5);
   
+  $menu->html ('menu');
+  
   $menu->second_menu;
   $menu->minute_menu;
   $menu->hour_menu;
@@ -486,15 +542,17 @@ L<Template::Magic|Template::Magic> templating systems.
 
 =head1 DESCRIPTION
 
-Creates data structures suitable for populating 
-L<HTML::Template|HTML::Template>, L<Template Toolkit|Template> or 
-L<Template::Magic|Template::Magic> templates with dropdown date and 
+Creates data structures suitable for populating HTML::Template, 
+Template Toolkit or Template::Magic templates with dropdown date and 
 time menus.
 
 Allows any number of dropdown menus to be displayed on a single page, each 
 independantly configurable.
 
-Distribution includes ready-to-use template include files.
+Distribution includes ready-to-use template include files. 
+
+Can output valid HTML, allowing quick prototyping of pages, with the freedom 
+to easily switch to using templates later. 
 
 =head1 MOTIVATION
 
@@ -515,6 +573,23 @@ needed. HTML Menus can be created as easily as:
   
   print $template->output;
 
+=head1 INSTALLATION
+
+To install this module, run the following commands:
+
+  perl Makefile.PL
+  make
+  make test
+  make install
+
+Alternatively, to install with Module::Build, you can use the following 
+commands:
+
+  perl Build.PL
+  ./Build
+  ./Build test
+  ./Build install
+
 =head1 METHODS
 
 =head2 new()
@@ -528,7 +603,8 @@ needed. HTML Menus can be created as easily as:
                  month_format     => 'short',
                  locale           => 'en_GB',
                  second_increment => 15,
-                 minute_increment => 5);
+                 minute_increment => 5,
+                 html             => 'menu');
   
   my $menu2 = HTML::Menu::DateTime->new 
                 (less_years => $less,
@@ -591,6 +667,10 @@ Accepts the same values as the L<"second_increment()"> method.
 
 Accepts the same values as the L<"minute_increment()"> method.
 
+=item html
+
+Accepts the same values as the L<"html()"> method.
+
 =back
 
 =head2 start_year()
@@ -636,13 +716,12 @@ be changed as shown in the list below.
   $date->month_format ('decimal');   # 01, 02, ...
 
 The 'ornate' option, available only in developer release 0.90_01 has been 
-dropped, as it isn't supported by the L<DateTime::Locale|DateTime::Locale> 
-module (see L<"locale()">).
+dropped, as it isn't supported by the DateTime::Locale module 
+(see L<"locale()">).
 
 =head2 locale()
 
-If locale is used, the L<DateTime::Locale|DateTime::Locale> module must be 
-installed.
+If locale is used, the DateTime::Locale module must be installed.
 
 Setting locale changes the names used for the 'long' and 'short' options of 
 L<"month_format()">.
@@ -653,8 +732,8 @@ L<"month_format()">.
   # Januar, Februar, ...
 
 The value passed to locale is used as the argument to 
-C<DateTime::Locale-E<gt>load()>, see the L<DateTime::Locale|DateTime::Locale> 
-documentation for a full list of available locales.
+C<DateTime::Locale-E<gt>load()>, see the DateTime::Locale documentation for a 
+full list of available locales.
 
 =head2 second_increment()
 
@@ -692,12 +771,50 @@ L<"minute_increment()"> can be set to any number from 1 to 59, though it
 would normally make sense to only set it to a number that 60 can be divided 
 by, such as 5, 10, 15, 20 or 30.
 
+=head2 html()
+
+  $date->html ('menu');
+  $date->html ('options');
+  $date->html (undef);
+
+Causes the _menu methods to output HTML, rather than data for a template.
+
+Valid values are C<menu> and C<options>, which will generate the HTML using 
+HTML::Menu::Select's I<menu> and I<options> routines, respectively. 
+
+When set to C<menu>, the HTML will contain a SELECT tag containing the 
+appropriate OPTION tags. This allows the entire SELECT tag to be replaced 
+within a template with a single, simple template tag.
+
+When set to C<options>, the HTML will contain the appropriate OPTION tags, 
+without the surrounding SELECT tags. This allows the SELECT tags to remain 
+in the template file, so that the page visuals can still be seen in 
+WYSIWYG HTML editors.
+
+  <SELECT name="">
+    <TMPL_VAR name=select_menu>
+  </SELECT>
+
+Values for I<values>, I<labels> and I<default> are automatically passed to 
+the I<menu> or I<options> routines. If a hash-ref is passed to any of 
+the _menu methods, it will also be passed to the I<menu> or I<options> 
+routine, allowing any of HTML::Menu::Select's other options to be set, such 
+as specifiying JavaScript or CSS attributes. See the HTML::Menu::Select 
+documentation for more details.
+
+L<"html()"> can be given C<undef> to switch off HTML generation.
+
+Any value other than C<'menu'>, C<'options'> or C<undef> is an error.
+
 =head2 second_menu()
 
   $date->second_menu;
   $date->second_menu (0);
   $date->second_menu ('+1');
   $date->second_menu ([0, 1]);
+  
+  $date->second_menu ({html => 'options'});
+  $date->second_menu (0, {html => 'options'});
 
 Accepts a value that will override the date (if any) in the L<"new()"> method.
 
@@ -709,114 +826,44 @@ Passing an arrayref of values will cause more than one item in the menu list
 to be selected. This will require the HTML in the template to be changed so 
 that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
 
-  <SELECT name="second" size="2" multiple>
+  <SELECT name="second" size="2" multiple="multiple">
 
-Returns an array-reference suitable for passing directly to a template.
+A hash-ref can be given, regardless of whether or not a date-effecting value 
+is given. If L<"menu()"> is set, this hash-ref will be passed onto the 
+HTML::Menu::Select I<menu()> or I<options> routine.
+
+If L<"html()"> is not set, this method returns an array-reference suitable for 
+passing directly to a template (See L<"EXAMPLES"> for details.
 
 =head2 minute_menu()
 
-  $date->minute_menu;
-  $date->minute_menu (0);
-  $date->minute_menu ('+1');
-  $date->minute_menu ([0, 1]);
+Valid numeric arguments are 0-59.
 
-Accepts a value that will override the date (if any) in the L<"new()"> method.
-
-Argument can be a number (0-59), a value such as '+1' or '-1' (relative to 
-either the date passed to L<"new()"> or the current time) or an arrayref of 
-number values.
-
-Passing an arrayref of values will cause more than one item in the menu list 
-to be selected. This will require the HTML in the template to be changed so 
-that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
-
-  <SELECT name="minute" size="2" multiple>
-
-Returns an array-reference suitable for passing directly to a template.
+See L<"second_menu()"> for further details.
 
 =head2 hour_menu()
 
-  $date->hour_menu;
-  $date->hour_menu (0);
-  $date->hour_menu ('+1');
-  $date->hour_menu ([0, 1]);
+Valid numeric arguments are 0-23.
 
-Accepts a value that will override the date (if any) in the L<"new()"> method.
-
-Argument can be a number (0-23), a value such as '+1' or '-1' (relative to 
-either the date passed to L<"new()"> or the current time) or an arrayref of 
-number values.
-
-Passing an arrayref of values will cause more than one item in the menu list 
-to be selected. This will require the HTML in the template to be changed so 
-that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
-
-  <SELECT name="hour" size="2" multiple>
-
-Returns an array-reference suitable for passing directly to a template.
+See L<"second_menu()"> for further details.
 
 =head2 day_menu()
 
-  $date->day_menu;
-  $date->day_menu (0);
-  $date->day_menu ('+1');
-  $date->day_menu ([0, 1]);
+Valid numeric arguments are 1-31.
 
-Accepts a value that will override the date (if any) in the L<"new()"> method.
-
-Argument can be a number (1-31), a value such as '+1' or '-1' (relative to 
-either the date passed to L<"new()"> or the current time) or an arrayref of 
-number values.
-
-Passing an arrayref of values will cause more than one item in the menu list 
-to be selected. This will require the HTML in the template to be changed so 
-that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
-
-  <SELECT name="day" size="2" multiple>
-
-Returns an array-reference suitable for passing directly to a template.
+See L<"second_menu()"> for further details.
 
 =head2 month_menu()
 
-  $date->month_menu;
-  $date->month_menu (0);
-  $date->month_menu ('+1');
-  $date->month_menu ([0, 1]);
+Valid numeric arguments are 01-12.
 
-Accepts a value that will override the date (if any) in the L<"new()"> method.
-
-Argument can be a number (1-12), a value such as '+1' or '-1' (relative to 
-either the date passed to L<"new()"> or the current time) or an arrayref of 
-number values.
-
-Passing an arrayref of values will cause more than one item in the menu list 
-to be selected. This will require the HTML in the template to be changed so 
-that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
-
-  <SELECT name="month" size="2" multiple>
-
-Returns an array-reference suitable for passing directly to a template.
+See L<"second_menu()"> for further details.
 
 =head2 year_menu()
 
-  $date->year_menu;
-  $date->year_menu (0);
-  $date->year_menu ('+1');
-  $date->year_menu ([0, 1]);
+Valid numeric arguments are 0 or higher.
 
-Accepts a value that will override the date (if any) in the L<"new()"> method.
-
-Argument can be a number (0 or higher), a value such as '+1' or '-1' 
-(relative to either the date passed to L<"new()"> or the current time) or an 
-arrayref of number values.
-
-Passing an arrayref of values will cause more than one item in the menu list 
-to be selected. This will require the HTML in the template to be changed so 
-that the SELECT menu has a size higher than 1 and the 'multiple' attribute.
-
-  <SELECT name="year" size="2" multiple>
-
-Returns an array-reference suitable for passing directly to a template.
+See L<"second_menu()"> for further details.
 
 =head1 EXAMPLES
 
@@ -1085,19 +1132,29 @@ will be selected.
 
 =head1 REQUIREMENTS
 
+If 'html' is set in L<"new()">, or L<"html()"> is set, then the 
+HTML::Menu::Select module must be installed.
+
 If 'locale' is set in L<"new()">, or L<"locale()"> is set, then the 
-L<DateTime::LocaleDateTime::Locale> module is required.
+DateTime::Locale module must be installed.
 
 =head1 DEPRECATED
 
+As of version 1.00, if L<"month_format()">, L<"second_increment()"> or 
+L<"minute_increment()"> is called with no arguments, the 
+value is no longer reset to it's default. (The previous behaviour was not 
+documented, other than in the test suite.)
+
+As of version 1.00, if L<"locale()">, L<"start_year()">, L<"end_year()">, 
+L<"less_years()"> or L<"plus_years()"> is called with no arguments, the 
+value is no longer set to undef. (The previous behaviour was neither 
+documented or tested for.)
+
 The 'ornate' option to L<"month_format()">, available only in developer 
 release 0.90_01 has been dropped, as it isn't supported by the 
-L<DateTime::LocaleDateTime::Locale> module (see L<"locale()">).
+DateTime::Locale module (see L<"locale()">).
 
 =head1 TO DO
-
-Might add option to output html/xhtml menus, rather than data structures for 
-templates.
 
 May change L<"year_menu()"> such that less_years / plus_years works with 
 multiple selections - it would probably have to start / end the list in 
@@ -1112,8 +1169,9 @@ Support mailing list: html-menu-users@lists.sourceforge.net
 
 =head1 SEE ALSO
 
-L<HTML::Template|HTML::Template>, L<Template Toolkit|Template>, 
-L<Template::MagicTemplate::Magic>, L<DateTime::LocaleDateTime::Locale>.
+HTML::Menu::Select, HTML::Template, Template Toolkit, 
+Template::MagicTemplate::Magic, 
+DateTime::Locale.
 
 =head1 AUTHOR
 
@@ -1130,7 +1188,9 @@ Carl Franks
 Copyright 2004-2005, Carl Franks.  All rights reserved.  
 
 This library is free software; you can redistribute it and/or modify it under 
-the same terms as Perl itself (L<perlgpl>, L<perlartistic>).
+the same terms as Perl itself.
+
+Licenses are in the files "Artistic" and "Copying" in this distribution.
 
 =cut
 

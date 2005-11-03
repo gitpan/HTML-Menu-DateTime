@@ -1,3 +1,15 @@
+Changes in 1.00
+
+	HTML generation routines.
+	
+	month_format(), second_increment() and minute_increment() when called with 
+	no arguments, no longer reset the value to it's default.
+	
+	locale(), start_year(), end_year(), less_years() and plus_years() when 
+	called with no arguments, no longer set the undef value.
+	
+	Test suite uses Test::Pod and Test::Pod::Coverage if available.
+
 Changes in 0.94
 
 	Fixed errors in POD documentation.
